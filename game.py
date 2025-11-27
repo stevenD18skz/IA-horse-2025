@@ -1,62 +1,74 @@
 import random
 from settings import *
+import random
+
+class Horse:
+    def __init__(self, name):
+        self.name = name
+        self.score = 0
+        self.position = None
+
+    def set_position(self, row, col):
+        self.position = (row, col)
+
+    def get_position(self):
+        return self.position
+
+
+
 
 class Game:
     def __init__(self):
-        self.board = [[None for _ in range(COLS)] for _ in range(ROWS)]
-        self.turn = 'white'  # 'white' or 'black'
-        self.selected_piece = None
-        self.valid_moves = []
-        self.destroyed_tiles = [] # List of (row, col)
-        self.scores = {'white': 0, 'black': 0}
-        self._init_board()
+        self.board = self._init_board()
+        self.board = [
+            [-3, 0, 0, 0, 0, 0, 0, 0], 
+            [5, 0, 0, 0, 0, 0, 0, 0], 
+            [0, 0, 0, 0, 0, 1, 0, 0], 
+            [0, 0, 0, 0, 0, 0, 10, 0], 
+            [0, 0, -10, 0, 0, 0, 0, 0], 
+            [0, 0, 0, 0, 0, 0, 0, 0], 
+            [0, -20, 0, 0, 0, 'WH', 0, -5], 
+            [3, 0, 0, 'BH', -1, 0, 0, 0]]
+        self.white_horse = Horse('WH')
+        self.black_horse = Horse('BH')
+        self.turn = self.black_horse
 
+        self.set_horse_position()
+        
+        
+        
+    #INIT
     def _init_board(self):
-        # Initialize with a White Knight at a random position or fixed
-        self.board[7][1] = 'WN' # White Knight
-        self.board[0][6] = 'BN' # Black Knight
-
-    def get_piece(self, row, col):
-        if 0 <= row < ROWS and 0 <= col < COLS:
-            return self.board[row][col]
-        return None
-
-    def select(self, row, col):
-        piece = self.get_piece(row, col)
+        board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+        elements_to_place = [-1, -3, -5, -10, 1, 3, 5, 10, 'WH', 'BH']
         
-        # If a piece is already selected, try to move to the clicked square
-        if self.selected_piece:
-            if (row, col) in self.valid_moves:
-                self.move(self.selected_piece, (row, col))
-                self.selected_piece = None
-                self.valid_moves = []
-                return True
-            else:
-                # If clicked on another piece of same color, select that instead
-                if piece and piece[0] == self.turn[0].upper():
-                    self.selected_piece = (row, col)
-                    self.valid_moves = self.get_valid_moves(row, col)
-                    return True
-                else:
-                    # Deselect if clicked elsewhere
-                    self.selected_piece = None
-                    self.valid_moves = []
-                    return False
+        # Generate all possible positions
+        all_positions = [(x, y) for x in range(ROWS) for y in range(COLS)]
+
+        # Randomly select unique positions for the elements
+        random_positions = random.sample(all_positions, len(elements_to_place))
         
-        # If no piece selected, try to select one
-        if piece and piece[0] == self.turn[0].upper():
-            self.selected_piece = (row, col)
-            self.valid_moves = self.get_valid_moves(row, col)
-            return True
+        for i, element in enumerate(elements_to_place):
+            row, col = random_positions[i]
+            board[row][col] = element
+        
+        return board
 
-        return False
 
-    def get_valid_moves(self, row, col):
+
+    def set_horse_position(self):
+        for r in range(ROWS):
+            for c in range(COLS):
+                if self.board[r][c] == 'WH':
+                    self.white_horse.set_position(r, c)
+                elif self.board[r][c] == 'BH':
+                    self.black_horse.set_position(r, c)
+        
+
+
+    #HORSES
+    def get_valid_moves(self):
         moves = []
-        piece = self.board[row][col]
-        if not piece:
-            return moves
-
         # Knight moves: L-shape
         # (row +/- 2, col +/- 1) and (row +/- 1, col +/- 2)
         offsets = [
@@ -66,61 +78,84 @@ class Game:
             (2, -1), (2, 1)
         ]
 
-        for dr, dc in offsets:
-            r, c = row + dr, col + dc
-            if 0 <= r < ROWS and 0 <= c < COLS:
+        row, col = self.turn.get_position()
+
+        for dx, dy in offsets:
+            x, y = row + dx, col + dy
+            if 0 <= x < ROWS and 0 <= y < COLS:
                 # Check if tile is destroyed
-                if (r, c) in self.destroyed_tiles:
+                if self.board[x][y] == -20:
                     continue
                 
-                target = self.board[r][c]
+                target = self.board[x][y]
+
                 # Can move to empty square or capture enemy
-                if target is None or target[0] != piece[0]:
-                    moves.append((r, c))
-        
+                if target == -20 or target == 'BH' or target == 'WH':
+                    continue
+
+                moves.append((x, y))
+
         return moves
 
-    def move(self, start, end):
-        start_row, start_col = start
+
+
+    def move(self, end):
+        start_row, start_col = self.turn.get_position()
         end_row, end_col = end
-        
-        piece = self.board[start_row][start_col]
-        
-        # Destroy the tile where the piece was
-        self.destroyed_tiles.append((start_row, start_col))
-        
-        # Update board
-        self.board[start_row][start_col] = None
-        self.board[end_row][end_col] = piece
+
+        valides = self.get_valid_moves()
+        if (end_row, end_col) not in valides:
+            return
+
+        # Update piece position
+        self.turn.set_position(end_row, end_col)
+
         
         # Update score (1 point per move)
-        self.scores[self.turn] += 1
+        piece = self.board[end_row][end_col]
+        if isinstance(piece, int) and piece != -20:
+            self.turn.score += piece
+        
+        # Update board
+        self.board[start_row][start_col] = -20
+        self.board[end_row][end_col] = self.turn.name
+        
         
         self.change_turn()
 
-    def change_turn(self):
-        if self.turn == 'white':
-            self.turn = 'black'
-        else:
-            self.turn = 'white'
+
 
     def ai_move(self):
-        # Find White Knight (assuming only one for now based on prompt)
-        # Prompt says "caballo blanco (IA)"
-        # If it's white's turn and AI controls white
-        if self.turn == 'white':
-            knights = []
-            for r in range(ROWS):
-                for c in range(COLS):
-                    if self.board[r][c] == 'WN':
-                        knights.append((r, c))
-            
-            if knights:
-                # Pick a random knight (if multiple)
-                knight_pos = random.choice(knights)
-                moves = self.get_valid_moves(knight_pos[0], knight_pos[1])
-                if moves:
-                    target = random.choice(moves)
-                    self.move(knight_pos, target)
-                    return True
+        moves = self.get_valid_moves()
+
+        if moves:
+            target = random.choice(moves)
+            self.move(target)
+            return True
         return False
+
+
+
+
+    #GAME STATE
+    def change_turn(self):
+        if self.turn == self.black_horse:
+            self.turn = self.white_horse
+        else:
+            self.turn = self.black_horse
+
+
+
+    def check_winner(self):
+        if self.white_horse.score > self.black_horse.score:
+            return 'WH'
+        elif self.black_horse.score > self.white_horse.score:
+            return 'BH'
+        return None
+
+
+
+    def game_over(self):
+        return False
+
+
