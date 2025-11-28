@@ -157,11 +157,24 @@ class GUI:
             
             game_over = self.game.game_over()
             winner = None
+
+
             if game_over:
                 winner = self.game.check_winner()
-                print(f"Game Over! Winner: {winner}")
-                print(f"White Score: {self.game.white_horse.score}")
-                print(f"Black Score: {self.game.black_horse.score}")
+                print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!Game Over! Winner: {winner}")
+            else:
+                # Check if current player has moves, if not, skip turn
+                if not self.game.get_valid_moves():
+                    print(f"No moves for {self.game.turn.name}, skipping turn...")
+                    self.game.change_turn()
+                    continue
+
+
+
+            if self.game.turn == self.game.white_horse and not game_over:
+                self.game.ai_move()
+
+
 
             # Event Handling
             for event in pygame.event.get():
@@ -172,33 +185,27 @@ class GUI:
                     pos = pygame.mouse.get_pos()
                     
                     if game_over:
-                        # Check restart button
-                        # We need to recalculate the button rect or store it. 
-                        # For simplicity, let's just recreate the rect logic here or rely on the draw method returning it?
-                        # Drawing inside event loop is bad. Let's just calculate rect here.
                         button_rect = pygame.Rect(0, 0, 200, 50)
                         button_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80)
                         if button_rect.collidepoint(pos):
                             self.game = Game() # Restart game
                             game_over = False
+                            winner = None
                     else:
                         # Game logic clicks
-                        if self.game.turn == self.game.black_horse: # Only handle clicks if it's player's turn
+                        if self.game.turn == self.game.black_horse:
                              row, col = self.get_row_col_from_mouse(pos)
                              if row is not None and col is not None:
                                  self.game.move(end=(row, col))
 
-            # AI Move
-            if not game_over and self.game.turn == self.game.white_horse:
-                # Add a small delay or just move?
-                # The original code just moved.
-                self.game.ai_move()
 
+            
             # Drawing
             self.draw_panel()
             self.draw_board()
 
             if game_over:
+                print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!dibujando game over")
                 self.draw_game_over(winner)
 
             pygame.display.update()

@@ -24,11 +24,11 @@ class Game:
             [-3, 0, 0, 0, 0, 0, 0, 0], 
             [5, 0, 0, 0, 0, 0, 0, 0], 
             [0, 0, 0, 0, 0, 1, 0, 0], 
-            [0, 0, 0, 0, 0, 0, 10, 0], 
-            [0, 0, -10, 0, 0, 0, 0, 0], 
-            [0, 0, 0, 0, 0, 0, 0, 0], 
-            [0, -20, 0, 0, 0, 'WH', 0, -5], 
-            [3, 0, 0, 'BH', -1, 0, 0, 0]]
+            [-20, -20, -20, -20, -20, -20, -20, -20], 
+            [-20, -20, -20, -20, -20, -20, -20, -20], 
+            [-20, 0, -20, -20, -20, -20, -20, -20], 
+            [-20, -20, -20, -20, -20, 'WH', 0, -5], 
+            ['BH', -20, -20, -20, -1, 0, 0, 0]]
         self.white_horse = Horse('WH')
         self.black_horse = Horse('BH')
         self.turn = self.black_horse
@@ -148,9 +148,9 @@ class Game:
 
     def check_winner(self):
         if self.white_horse.score > self.black_horse.score:
-            return 'WH'
+            return self.white_horse
         elif self.black_horse.score > self.white_horse.score:
-            return 'BH'
+            return self.black_horse
         return None
 
 
@@ -189,12 +189,14 @@ class Game:
         white_moves = get_valid_moves_by_horse(self.white_horse)
         black_moves = get_valid_moves_by_horse(self.black_horse)
 
-        print(f"White Moves: {white_moves}")
-        print(f"Black Moves: {black_moves}")
+        print(f"==============White Moves: {white_moves}")
+        print(f"==============Black Moves: {black_moves}")
         
-        if len(white_moves) > 0 or len(black_moves) > 0:
-            return False
+        if len(white_moves) == 0 and len(black_moves) == 0:
+            print("ambos se quedaron sin movimientos")
+            return True
         
-        return True
+        print("aun pueden jugar")
+        return False
 
 
