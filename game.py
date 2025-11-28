@@ -179,7 +179,7 @@ class Game:
                     target = self.board[x][y]
 
                     # Cant move to empty square or capture enemy
-                    if target == -20 or target == 'BH' or target == 'WH':
+                    if target in [-20, 'BH', 'WH']:
                         continue
 
                     moves.append((x, y))
@@ -188,6 +188,9 @@ class Game:
         
         white_moves = get_valid_moves_by_horse(self.white_horse)
         black_moves = get_valid_moves_by_horse(self.black_horse)
+
+        print(f"White Moves: {white_moves}")
+        print(f"Black Moves: {black_moves}")
         
         if len(white_moves) > 0 or len(black_moves) > 0:
             return False
