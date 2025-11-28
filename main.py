@@ -244,6 +244,7 @@ class GUI:
             if game_over:
                 winner = self.game.check_winner()
                 self.status_message = f"Game Over! Winner: {winner}"
+                
             else:
                 # Check if current player has moves
                 if not self.game.get_valid_moves():

@@ -20,19 +20,10 @@ class Horse:
 class Game:
     def __init__(self, difficulty=4):
         self.difficulty = difficulty
-        self.board = [
-            [-3, 0, 0, 0, 0, 0, 0, 0], 
-            [5, 0, 0, 0, 0, 0, 0, 0], 
-            [0, 0, 0, 0, 0, 1, 0, 0], 
-            [0, 0, 0, 0, 0, 0, 0, 0], 
-            [0, 0, 0, 0, 0, 0, 0, 0], 
-            [0, 0, 0, 0, 0, 0, 0, 0], 
-            [0, 0, 0, 0, 0, 'WH', 0, -5], 
-            ['BH', 0, 0, 0, -1, 0, 0, 0]]
         self.board = self._init_board()
         self.white_horse = Horse('WH')
         self.black_horse = Horse('BH')
-        self.turn = self.black_horse
+        self.turn = self.white_horse
 
         self.set_horse_position()
         
@@ -41,7 +32,7 @@ class Game:
     #INIT
     def _init_board(self):
         board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
-        elements_to_place = [-1, -3, -5, -10, 1, 3, 5, 10, 'WH', 'BH']
+        elements_to_place = [-1, -3, -4, -5, -10, 1, 3, 4, 5, 10, 'WH', 'BH']
         
         # Generate all possible positions
         all_positions = [(x, y) for x in range(ROWS) for y in range(COLS)]
@@ -127,8 +118,6 @@ class Game:
 
 
     def get_ai_decision(self):
-        # Returns the best move found by Minimax
-        # print(f"AI Thinking... Depth: {self.difficulty}")
         _, best_move = self.minimax(self, self.difficulty, True)
         return best_move
 
@@ -327,14 +316,9 @@ class Game:
         white_moves = get_valid_moves_by_horse(self.white_horse)
         black_moves = get_valid_moves_by_horse(self.black_horse)
 
-        print(f"==============White Moves: {white_moves}")
-        print(f"==============Black Moves: {black_moves}")
-        
         if len(white_moves) == 0 and len(black_moves) == 0:
-            print("ambos se quedaron sin movimientos")
             return True
-        
-        print("aun pueden jugar")
+            
         return False
 
 
