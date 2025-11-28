@@ -20,8 +20,43 @@ class GUI:
         self.assets = {}
         self._load_assets()
 
-        self.game = Game()
+        self.game = None # Game starts after difficulty selection
+        self.difficulty = None
+        self.state = 'START' # START, PLAYING, GAMEOVER
         self.running = True
+
+    def draw_start_screen(self):
+        self.screen.fill(COLOR_PANEL)
+        
+        title_text = self.font.render("Smart Horses", True, COLOR_TEXT)
+        title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 100))
+        self.screen.blit(title_text, title_rect)
+        
+        subtitle_text = self.small_font.render("Select Difficulty", True, COLOR_TEXT)
+        subtitle_rect = subtitle_text.get_rect(center=(SCREEN_WIDTH // 2, 160))
+        self.screen.blit(subtitle_text, subtitle_rect)
+
+        # Buttons
+        buttons = [
+            ("Beginner (Depth 2)", 2, 200),
+            ("Amateur (Depth 4)", 4, 280),
+            ("Expert (Depth 6)", 6, 360)
+        ]
+        
+        button_rects = []
+        for text, diff, y in buttons:
+            rect = pygame.Rect(0, 0, 300, 60)
+            rect.center = (SCREEN_WIDTH // 2, y)
+            pygame.draw.rect(self.screen, (200, 200, 200), rect)
+            pygame.draw.rect(self.screen, (0, 0, 0), rect, 2)
+            
+            label = self.font.render(text, True, (0, 0, 0))
+            label_rect = label.get_rect(center=rect.center)
+            self.screen.blit(label, label_rect)
+            
+            button_rects.append((rect, diff))
+            
+        return button_rects
 
     def _load_assets(self):
         # Paths
@@ -60,7 +95,7 @@ class GUI:
         score_text = self.small_font.render(f"Scores - White (AI): {self.game.white_horse.score} | Black (Player): {self.game.black_horse.score}", True, COLOR_TEXT)
         self.screen.blit(score_text, (20, 60))
         
-        info_text = self.small_font.render("White: AI (Random) | Black: Player", True, COLOR_TEXT)
+        info_text = self.small_font.render(f"White: AI (Depth {self.game.difficulty}) | Black: Player", True, COLOR_TEXT)
         self.screen.blit(info_text, (20, 85))
 
     def draw_board(self):
@@ -155,13 +190,31 @@ class GUI:
         while self.running:
             self.clock.tick(FPS)
             
+            if self.state == 'START':
+                button_rects = self.draw_start_screen()
+                
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.running = False
+                    
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        pos = pygame.mouse.get_pos()
+                        for rect, diff in button_rects:
+                            if rect.collidepoint(pos):
+                                self.difficulty = diff
+                                self.game = Game(difficulty=self.difficulty)
+                                self.state = 'PLAYING'
+                
+                pygame.display.update()
+                continue
+
+            # PLAYING STATE
             game_over = self.game.game_over()
             winner = None
 
-
             if game_over:
                 winner = self.game.check_winner()
-                print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!Game Over! Winner: {winner}")
+                # print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!Game Over! Winner: {winner}")
             else:
                 # Check if current player has moves, if not, skip turn
                 if not self.game.get_valid_moves():
@@ -169,12 +222,8 @@ class GUI:
                     self.game.change_turn()
                     continue
 
-
-
             if self.game.turn == self.game.white_horse and not game_over:
                 self.game.ai_move()
-
-
 
             # Event Handling
             for event in pygame.event.get():
@@ -188,7 +237,8 @@ class GUI:
                         button_rect = pygame.Rect(0, 0, 200, 50)
                         button_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80)
                         if button_rect.collidepoint(pos):
-                            self.game = Game() # Restart game
+                            self.state = 'START' # Go back to start screen
+                            self.game = None
                             game_over = False
                             winner = None
                     else:
@@ -197,15 +247,12 @@ class GUI:
                              row, col = self.get_row_col_from_mouse(pos)
                              if row is not None and col is not None:
                                  self.game.move(end=(row, col))
-
-
             
             # Drawing
             self.draw_panel()
             self.draw_board()
 
             if game_over:
-                print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!dibujando game over")
                 self.draw_game_over(winner)
 
             pygame.display.update()
