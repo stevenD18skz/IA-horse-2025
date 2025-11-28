@@ -156,6 +156,42 @@ class Game:
 
 
     def game_over(self):
-        return False
+        def get_valid_moves_by_horse(horse):
+            moves = []
+            # Knight moves: L-shape
+            # (row +/- 2, col +/- 1) and (row +/- 1, col +/- 2)
+            offsets = [
+                (-2, -1), (-2, 1),
+                (-1, -2), (-1, 2),
+                (1, -2), (1, 2),
+                (2, -1), (2, 1)
+            ]
+
+            row, col = horse.get_position()
+
+            for dx, dy in offsets:
+                x, y = row + dx, col + dy
+                if 0 <= x < ROWS and 0 <= y < COLS:
+                    # Check if tile is destroyed
+                    if self.board[x][y] == -20:
+                        continue
+                    
+                    target = self.board[x][y]
+
+                    # Cant move to empty square or capture enemy
+                    if target == -20 or target == 'BH' or target == 'WH':
+                        continue
+
+                    moves.append((x, y))
+
+            return moves
+        
+        white_moves = get_valid_moves_by_horse(self.white_horse)
+        black_moves = get_valid_moves_by_horse(self.black_horse)
+        
+        if len(white_moves) > 0 or len(black_moves) > 0:
+            return False
+        
+        return True
 
 
