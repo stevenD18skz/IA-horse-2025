@@ -143,6 +143,8 @@ class Game:
         print("AI has no moves!")
         return False
 
+
+
     def evaluate_board(self, game_state):
         # Heuristic Function
         # 1. Score Difference (Primary)
@@ -157,6 +159,8 @@ class Game:
         mobility_score = (white_moves - black_moves) * 0.5 # Weight mobility less than actual points
 
         return score_diff + mobility_score
+
+
 
     def get_valid_moves_sim(self, game_state, horse):
         # Helper to get moves for a specific state and horse without changing self.turn
