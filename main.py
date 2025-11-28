@@ -24,6 +24,8 @@ class GUI:
         self.difficulty = None
         self.state = 'START' # START, PLAYING, GAMEOVER
         self.running = True
+        self.status_message = "Welcome! Select difficulty."
+        self.ai_target_pos = None # For highlighting AI intended move
 
 
 
@@ -94,8 +96,12 @@ class GUI:
         pygame.draw.rect(self.screen, COLOR_PANEL, (0, 0, SCREEN_WIDTH, PANEL_HEIGHT))
         
         # Draw Info
-        turn_text = self.font.render(f"Turn: {self.game.turn.name}", True, COLOR_TEXT)
-        self.screen.blit(turn_text, (20, 20))
+        try:
+            turn_text = self.font.render(f"Turn: {self.game.turn.name}", True, COLOR_TEXT)
+            self.screen.blit(turn_text, (20, 20))
+        except AttributeError:
+            turn_text = self.font.render("Turn: -", True, COLOR_TEXT)
+            self.screen.blit(turn_text, (20, 20))
         
         # Scores
         score_text = self.small_font.render(f"Scores - White (AI): {self.game.white_horse.score} | Black (Player): {self.game.black_horse.score}", True, COLOR_TEXT)
@@ -103,6 +109,10 @@ class GUI:
         
         info_text = self.small_font.render(f"White: AI (Depth {self.game.difficulty}) | Black: Player", True, COLOR_TEXT)
         self.screen.blit(info_text, (20, 85))
+
+        # Status Message
+        status_text = self.small_font.render(f"Status: {self.status_message}", True, (255, 50, 50))
+        self.screen.blit(status_text, (20, 110))
 
 
 
@@ -132,6 +142,13 @@ class GUI:
                     s = pygame.Surface((TILE_SIZE, TILE_SIZE))
                     s.set_alpha(128)
                     s.fill(COLOR_HIGHLIGHT)
+                    self.screen.blit(s, (col * TILE_SIZE, row * TILE_SIZE + PANEL_HEIGHT))
+                
+                # Draw AI Target Highlight
+                if self.ai_target_pos == (row, col):
+                    s = pygame.Surface((TILE_SIZE, TILE_SIZE))
+                    s.set_alpha(180)
+                    s.fill((255, 0, 0)) # Red highlight for AI intent
                     self.screen.blit(s, (col * TILE_SIZE, row * TILE_SIZE + PANEL_HEIGHT))
 
                 if piece not in [-20, 'HW', 'HB', 0]:
@@ -226,16 +243,58 @@ class GUI:
 
             if game_over:
                 winner = self.game.check_winner()
-                # print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!Game Over! Winner: {winner}")
+                self.status_message = f"Game Over! Winner: {winner}"
             else:
-                # Check if current player has moves, if not, skip turn
+                # Check if current player has moves
                 if not self.game.get_valid_moves():
-                    print(f"No moves for {self.game.turn.name}, skipping turn...")
+                    self.status_message = f"No moves for {self.game.turn.name}. Skipping turn..."
+                    # Draw to show message before skipping
+                    self.draw_panel()
+                    self.draw_board()
+                    pygame.display.update()
+                    pygame.time.wait(1500)
+                    
                     self.game.change_turn()
                     continue
 
             if self.game.turn == self.game.white_horse and not game_over:
-                self.game.ai_move()
+                # 1. Update Status to Thinking
+                self.status_message = "AI Thinking..."
+                self.draw_panel()
+                self.draw_board()
+                pygame.display.update()
+                
+                # 2. Artificial Delay for "Thinking"
+                pygame.time.wait(500)
+                
+                # 3. Get Decision
+                best_move = self.game.get_ai_decision()
+                
+                if best_move:
+                    # 4. Highlight Target
+                    self.ai_target_pos = best_move
+                    self.status_message = f"AI moving to {best_move}..."
+                    self.draw_panel()
+                    self.draw_board()
+                    pygame.display.update()
+                    
+                    # 5. Delay to show highlight
+                    pygame.time.wait(1000)
+                    
+                    # 6. Execute Move
+                    self.game.move(best_move)
+                    self.ai_target_pos = None # Clear highlight
+                else:
+                    # Should be handled by no moves check, but just in case
+                    self.status_message = "AI has no moves!"
+                    self.draw_panel()
+                    self.draw_board()
+                    pygame.display.update()
+                    pygame.time.wait(1000)
+            
+            # Update status for player turn
+            if self.game and self.game.turn == self.game.black_horse and not game_over:
+                 self.status_message = "Your Turn (Black Horse)"
 
             # Event Handling
             for event in pygame.event.get():

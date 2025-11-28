@@ -126,22 +126,11 @@ class Game:
 
 
 
-    def ai_move(self):
-        print(f"AI Thinking... Depth: {self.difficulty}")
-        best_move = None
-        
-        # Use Minimax to find the best move
-        # We are maximizing for White Horse (AI)
+    def get_ai_decision(self):
+        # Returns the best move found by Minimax
+        # print(f"AI Thinking... Depth: {self.difficulty}")
         _, best_move = self.minimax(self, self.difficulty, True)
-
-        if best_move:
-            print(f"AI chose move: {best_move}")
-            self.move(best_move)
-            return True
-        
-        # Fallback if no move found (should be handled by game over check, but just in case)
-        print("AI has no moves!")
-        return False
+        return best_move
 
 
 
