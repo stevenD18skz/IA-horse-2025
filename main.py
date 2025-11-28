@@ -25,6 +25,8 @@ class GUI:
         self.state = 'START' # START, PLAYING, GAMEOVER
         self.running = True
 
+
+
     def draw_start_screen(self):
         self.screen.fill(COLOR_PANEL)
         
@@ -42,7 +44,7 @@ class GUI:
             ("Amateur (Depth 4)", 4, 280),
             ("Expert (Depth 6)", 6, 360)
         ]
-        
+
         button_rects = []
         for text, diff, y in buttons:
             rect = pygame.Rect(0, 0, 300, 60)
@@ -57,6 +59,8 @@ class GUI:
             button_rects.append((rect, diff))
             
         return button_rects
+
+
 
     def _load_assets(self):
         # Paths
@@ -74,6 +78,8 @@ class GUI:
             print(f"Error loading assets: {e}")
             # Fallback to None or handle gracefully
             pass
+
+
 
     def get_row_col_from_mouse(self, pos):
         x, y = pos
@@ -97,6 +103,8 @@ class GUI:
         
         info_text = self.small_font.render(f"White: AI (Depth {self.game.difficulty}) | Black: Player", True, COLOR_TEXT)
         self.screen.blit(info_text, (20, 85))
+
+
 
     def draw_board(self):
         for row in range(ROWS):
@@ -145,6 +153,8 @@ class GUI:
                                                                 row * TILE_SIZE + PANEL_HEIGHT + TILE_SIZE // 2))
                         self.screen.blit(piece_text, text_rect)
 
+
+
     def draw_game_over(self, winner):
         # Overlay
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -185,6 +195,8 @@ class GUI:
         self.screen.blit(restart_text, restart_rect)
 
         return button_rect
+
+
 
     def run(self):
         while self.running:

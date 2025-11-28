@@ -293,9 +293,9 @@ class Game:
 
     def check_winner(self):
         if self.white_horse.score > self.black_horse.score:
-            return self.white_horse
+            return self.white_horse.name
         elif self.black_horse.score > self.white_horse.score:
-            return self.black_horse
+            return self.black_horse.name
         return None
 
 
