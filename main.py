@@ -104,7 +104,7 @@ class GUI:
             self.screen.blit(turn_text, (20, 20))
         
         # Puntajes
-        score_text = self.small_font.render(f"Scores - White (AI): {self.game.white_horse.score} | Black (Player): {self.game.black_horse.score}", True, COLOR_TEXT)
+        score_text = self.small_font.render(f"Scores => White (AI): {self.game.white_horse.score}  VS  Black (Player): {self.game.black_horse.score}", True, COLOR_TEXT)
         self.screen.blit(score_text, (20, 60))
         
         info_text = self.small_font.render(f"White: AI (Depth {self.game.difficulty}) | Black: Player", True, COLOR_TEXT)
