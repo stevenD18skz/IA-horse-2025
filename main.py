@@ -104,15 +104,27 @@ class GUI:
             self.screen.blit(turn_text, (20, 20))
         
         # Puntajes
-        score_text = self.small_font.render(f"Scores => White (AI): {self.game.white_horse.score}  VS  Black (Player): {self.game.black_horse.score}", True, COLOR_TEXT)
-        self.screen.blit(score_text, (20, 60))
+        try:
+            score_text = self.small_font.render(f"Scores => White (AI): {self.game.white_horse.score}  VS  Black (Player): {self.game.black_horse.score}", True, COLOR_TEXT)
+            self.screen.blit(score_text, (20, 60))
+        except AttributeError:
+            score_text = self.small_font.render("Scores => White (AI): -  VS  Black (Player): -", True, COLOR_TEXT)
+            self.screen.blit(score_text, (20, 60))
         
-        info_text = self.small_font.render(f"White: AI (Depth {self.game.difficulty}) | Black: Player", True, COLOR_TEXT)
-        self.screen.blit(info_text, (20, 85))
+        try:
+            info_text = self.small_font.render(f"White: AI (Depth {self.game.difficulty}) | Black: Player", True, COLOR_TEXT)
+            self.screen.blit(info_text, (20, 85))
+        except AttributeError:
+            info_text = self.small_font.render("White: AI (Depth -) | Black: Player", True, COLOR_TEXT)
+            self.screen.blit(info_text, (20, 85))
 
         # Mensaje de Estado
-        status_text = self.small_font.render(f"Status: {self.status_message}", True, (255, 50, 50))
-        self.screen.blit(status_text, (20, 110))
+        try:
+            status_text = self.small_font.render(f"Status: {self.status_message}", True, (255, 50, 50))
+            self.screen.blit(status_text, (20, 110))
+        except AttributeError:
+            status_text = self.small_font.render("Status: -", True, (255, 50, 50))
+            self.screen.blit(status_text, (20, 110))
 
 
 
@@ -310,7 +322,7 @@ class GUI:
                         button_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80)
                         if button_rect.collidepoint(pos):
                             self.state = 'START' # Volver a la pantalla de inicio
-                            self.game = None
+                            self.game = Game(difficulty=self.difficulty)
                             game_over = False
                             winner = None
                     else:
