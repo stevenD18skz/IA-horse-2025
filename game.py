@@ -32,15 +32,15 @@ class Game:
         
         
         
-    #INIT
+    # INICIO
     def _init_board(self):
         board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
         elements_to_place = [-1, -3, -4, -5, -10, 1, 3, 4, 5, 10, 'WH', 'BH']
         
-        # Generate all possible positions
+        # Generar todas las posiciones posibles
         all_positions = [(x, y) for x in range(ROWS) for y in range(COLS)]
 
-        # Randomly select unique positions for the elements
+        # Seleccionar aleatoriamente posiciones únicas para los elementos
         random_positions = random.sample(all_positions, len(elements_to_place))
         
         for i, element in enumerate(elements_to_place):
@@ -61,11 +61,11 @@ class Game:
         
 
 
-    #HORSES
+    # CABALLOS
     def get_valid_moves(self):
         moves = []
-        # Knight moves: L-shape
-        # (row +/- 2, col +/- 1) and (row +/- 1, col +/- 2)
+        # Movimientos del Caballo: Forma de L
+        # (fila +/- 2, col +/- 1) y (fila +/- 1, col +/- 2)
         offsets = [
             (-2, -1), (-2, 1),
             (-1, -2), (-1, 2),
@@ -78,13 +78,13 @@ class Game:
         for dx, dy in offsets:
             x, y = row + dx, col + dy
             if 0 <= x < ROWS and 0 <= y < COLS:
-                # Check if tile is destroyed
+                # Verificar si la casilla está destruida
                 if self.board[x][y] == -20:
                     continue
                 
                 target = self.board[x][y]
 
-                # Can move to empty square or capture enemy
+                # Puede moverse a una casilla vacía o capturar al enemigo
                 if target == -20 or target == 'BH' or target == 'WH':
                     continue
 
@@ -102,16 +102,16 @@ class Game:
         if (end_row, end_col) not in valides:
             return
 
-        # Update piece position
+        # Actualizar posición de la pieza
         self.turn.set_position(end_row, end_col)
 
         
-        # Update score (1 point per move)
+        # Actualizar puntaje (1 punto por movimiento)
         piece = self.board[end_row][end_col]
         if isinstance(piece, int) and piece != -20:
             self.turn.score += piece
         
-        # Update board
+        # Actualizar tablero
         self.board[start_row][start_col] = -20
         self.board[end_row][end_col] = self.turn.name
         
@@ -127,24 +127,24 @@ class Game:
 
 
     def evaluate_board(self, game_state):
-        # Heuristic Function
-        # 1. Score Difference (Primary)
+        # Función Heurística
+        # 1. Diferencia de Puntaje (Primaria)
         score_diff = game_state.white_horse.score - game_state.black_horse.score
         
-        # 2. Mobility (Secondary)
-        # Calculate available moves for both to encourage keeping options open
-        # and to avoid the -4 penalty situation.
+        # 2. Movilidad (Secundaria)
+        # Calcular movimientos disponibles para ambos para fomentar mantener opciones abiertas
+        # y evitar la situación de penalización de -4.
         white_moves = len(self.get_valid_moves_sim(game_state, game_state.white_horse))
         black_moves = len(self.get_valid_moves_sim(game_state, game_state.black_horse))
         
-        mobility_score = (white_moves - black_moves) * 0.5 # Weight mobility less than actual points
+        mobility_score = (white_moves - black_moves) * 0.5 # Ponderar la movilidad menos que los puntos reales
 
         return score_diff + mobility_score
 
 
 
     def get_valid_moves_sim(self, game_state, horse):
-        # Helper to get moves for a specific state and horse without changing self.turn
+        # Ayudante para obtener movimientos para un estado y caballo específicos sin cambiar self.turn
         moves = []
         offsets = [
             (-2, -1), (-2, 1), (-1, -2), (-1, 2),
@@ -164,7 +164,7 @@ class Game:
         return moves
 
     def minimax(self, game_state, depth, is_maximizing):
-        # Base case: Depth reached or Game Over
+        # Caso base: Profundidad alcanzada o Fin del Juego
         white_moves = self.get_valid_moves_sim(game_state, game_state.white_horse)
         black_moves = self.get_valid_moves_sim(game_state, game_state.black_horse)
         
@@ -176,35 +176,25 @@ class Game:
         if is_maximizing:
             max_eval = float('-inf')
             best_move = None
-            
-            # If AI has no moves, it passes turn (effectively) or game ends?
-            # The rules say: "En cada turno el jugador debe mover su caballo, a no ser que no tengo movimientos posibles."
-            # If AI has no moves but Player does, AI passes.
+
             if not white_moves:
-                # Apply penalty if applicable? 
-                # "Si durante su turno un jugador no tiene movimientos disponibles pero su adversario sí los tiene, recibirá una penalización de -4 puntos."
-                # We simulate this by just passing turn and checking next state.
-                # However, to keep it simple in recursion, if no moves, we just evaluate here or skip to next layer with same board?
-                # Let's assume if no moves, we return current eval (or handle pass logic if we want to be precise).
-                # For simplicity: if no moves, treat as terminal for this branch or just return eval.
-                # But wait, if opponent has moves, game isn't over.
                 if black_moves:
-                     # AI passes, opponent plays (minimizing step)
-                     # We apply the -4 penalty to AI score in the copy for accurate evaluation
+                     # IA pasa, el oponente juega (paso de minimización)
+                     # Aplicamos la penalización de -4 al puntaje de la IA en la copia para una evaluación precisa
                      new_game_state = copy.deepcopy(game_state)
                      new_game_state.white_horse.score -= 4
                      eval_score, _ = self.minimax(new_game_state, depth - 1, False)
                      return eval_score, None
                 else:
-                    # Both no moves -> Game Over (handled by base case above usually, but double check)
+                    # Ambos sin movimientos -> Fin del Juego (manejado por el caso base arriba usualmente, pero verificar doblemente)
                     return self.evaluate_board(game_state), None
 
             for move in white_moves:
-                # Create a copy of the game state to simulate the move
+                # Crear una copia del estado del juego para simular el movimiento
                 new_game_state = copy.deepcopy(game_state)
                 
-                # Execute move on the copy
-                # We need to manually do what move() does but on the new state
+                # Ejecutar movimiento en la copia
+                # Necesitamos hacer manualmente lo que hace move() pero en el nuevo estado
                 start_r, start_c = new_game_state.white_horse.get_position()
                 end_r, end_c = move
                 
@@ -213,12 +203,12 @@ class Game:
                 if isinstance(piece, int) and piece != -20:
                     new_game_state.white_horse.score += piece
                 
-                # Update board
+                # Actualizar tablero
                 new_game_state.board[start_r][start_c] = -20
                 new_game_state.board[end_r][end_c] = 'WH'
                 new_game_state.white_horse.set_position(end_r, end_c)
                 
-                # Recursive call (Minimizing step)
+                # Llamada recursiva (Paso de minimización)
                 eval_score, _ = self.minimax(new_game_state, depth - 1, False)
                 
                 if eval_score > max_eval:
@@ -233,8 +223,8 @@ class Game:
             
             if not black_moves:
                 if white_moves:
-                    # Player passes, AI plays (maximizing step)
-                    # Player gets -4 penalty
+                    # Jugador pasa, IA juega (paso de maximización)
+                    # Jugador recibe penalización de -4
                     new_game_state = copy.deepcopy(game_state)
                     new_game_state.black_horse.score -= 4
                     eval_score, _ = self.minimax(new_game_state, depth - 1, True)
@@ -267,7 +257,7 @@ class Game:
 
 
 
-    #GAME STATE
+    # ESTADO DEL JUEGO
     def change_turn(self):
         if self.turn == self.black_horse:
             self.turn = self.white_horse
@@ -302,13 +292,13 @@ class Game:
             for dx, dy in offsets:
                 x, y = row + dx, col + dy
                 if 0 <= x < ROWS and 0 <= y < COLS:
-                    # Check if tile is destroyed
+                    # Verificar si la casilla está destruida
                     if self.board[x][y] == -20:
                         continue
                     
                     target = self.board[x][y]
 
-                    # Cant move to empty square or capture enemy
+                    # No puede moverse a casilla vacía o capturar enemigo
                     if target in [-20, 'BH', 'WH']:
                         continue
 

@@ -6,11 +6,11 @@ from game import Game, Horse
 
 class GUI:
     def __init__(self):
-        # Initialize Pygame
+        # Inicializar Pygame
         pygame.init()
         pygame.font.init()
 
-        # Setup Display
+        # Configurar Pantalla
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption('Chess Knight Project')
         self.clock = pygame.time.Clock()
@@ -20,12 +20,12 @@ class GUI:
         self.assets = {}
         self._load_assets()
 
-        self.game = None # Game starts after difficulty selection
+        self.game = None # El juego comienza después de la selección de dificultad
         self.difficulty = None
-        self.state = 'START' # START, PLAYING, GAMEOVER
+        self.state = 'START' # INICIO, JUGANDO, FIN_DEL_JUEGO
         self.running = True
         self.status_message = "Welcome! Select difficulty."
-        self.ai_target_pos = None # For highlighting AI intended move
+        self.ai_target_pos = None # Para resaltar el movimiento intencionado de la IA
 
 
 
@@ -40,7 +40,7 @@ class GUI:
         subtitle_rect = subtitle_text.get_rect(center=(SCREEN_WIDTH // 2, 160))
         self.screen.blit(subtitle_text, subtitle_rect)
 
-        # Buttons
+        # Botones
         buttons = [
             ("Beginner (Depth 2)", 2, 200),
             ("Amateur (Depth 4)", 4, 280),
@@ -65,10 +65,10 @@ class GUI:
 
 
     def _load_assets(self):
-        # Paths
+        # Rutas
         base_path = os.path.join(os.path.dirname(__file__), 'assets')
         
-        # Load and scale images
+        # Cargar y escalar imágenes
         try:    
             self.assets['WH'] = pygame.transform.scale(
                 pygame.image.load(os.path.join(base_path, 'horse_ia.png')), (TILE_SIZE, TILE_SIZE))
@@ -78,7 +78,7 @@ class GUI:
                 pygame.image.load(os.path.join(base_path, 'destroy.png')), (TILE_SIZE, TILE_SIZE))
         except Exception as e:
             print(f"Error loading assets: {e}")
-            # Fallback to None or handle gracefully
+            # Recurrir a None o manejar con gracia
             pass
 
 
@@ -92,10 +92,10 @@ class GUI:
         return row, col
 
     def draw_panel(self):
-        # Draw panel background
+        # Dibujar fondo del panel
         pygame.draw.rect(self.screen, COLOR_PANEL, (0, 0, SCREEN_WIDTH, PANEL_HEIGHT))
         
-        # Draw Info
+        # Dibujar Información
         try:
             turn_text = self.font.render(f"Turn: {self.game.turn.name}", True, COLOR_TEXT)
             self.screen.blit(turn_text, (20, 20))
@@ -103,14 +103,14 @@ class GUI:
             turn_text = self.font.render("Turn: -", True, COLOR_TEXT)
             self.screen.blit(turn_text, (20, 20))
         
-        # Scores
+        # Puntajes
         score_text = self.small_font.render(f"Scores - White (AI): {self.game.white_horse.score} | Black (Player): {self.game.black_horse.score}", True, COLOR_TEXT)
         self.screen.blit(score_text, (20, 60))
         
         info_text = self.small_font.render(f"White: AI (Depth {self.game.difficulty}) | Black: Player", True, COLOR_TEXT)
         self.screen.blit(info_text, (20, 85))
 
-        # Status Message
+        # Mensaje de Estado
         status_text = self.small_font.render(f"Status: {self.status_message}", True, (255, 50, 50))
         self.screen.blit(status_text, (20, 110))
 
@@ -121,49 +121,49 @@ class GUI:
             for col in range(COLS):
                 piece = self.game.board[row][col]
 
-                # Determine color
+                # Determinar color
                 color = COLOR_BOARD_LIGHT if (row + col) % 2 == 0 else COLOR_BOARD_DARK
                 
-                # Draw square (offset by PANEL_HEIGHT)
+                # Dibujar casilla (desplazada por PANEL_HEIGHT)
                 rect = (col * TILE_SIZE, row * TILE_SIZE + PANEL_HEIGHT, TILE_SIZE, TILE_SIZE)
                 pygame.draw.rect(self.screen, color, rect)
                 
-                # Draw Destroyed Tile
+                # Dibujar Casilla Destruida
                 if piece == -20:
                     if 'destroy' in self.assets:
                         self.screen.blit(self.assets['destroy'], (col * TILE_SIZE, row * TILE_SIZE + PANEL_HEIGHT))
                     else:
-                        # Fallback visual
+                        # Visual alternativo
                         pygame.draw.rect(self.screen, (50, 50, 50), rect)
                 
-                # Draw Highlight if valid move
+                # Dibujar Resaltado si es movimiento válido
                 if (row, col) in self.game.get_valid_moves():
-                    # Create a surface for transparency
+                    # Crear una superficie para transparencia
                     s = pygame.Surface((TILE_SIZE, TILE_SIZE))
                     s.set_alpha(128)
                     s.fill(COLOR_HIGHLIGHT)
                     self.screen.blit(s, (col * TILE_SIZE, row * TILE_SIZE + PANEL_HEIGHT))
                 
-                # Draw AI Target Highlight
+                # Dibujar Resaltado de Objetivo de IA
                 if self.ai_target_pos == (row, col):
                     s = pygame.Surface((TILE_SIZE, TILE_SIZE))
                     s.set_alpha(180)
-                    s.fill((255, 0, 0)) # Red highlight for AI intent
+                    s.fill((255, 0, 0)) # Resaltado rojo para intención de IA
                     self.screen.blit(s, (col * TILE_SIZE, row * TILE_SIZE + PANEL_HEIGHT))
 
                 if piece not in [-20, 'HW', 'HB', 0]:
-                    # Render the integer as text
+                    # Renderizar el entero como texto
                     piece_text = self.small_font.render(str(piece), True, (0, 0, 0))
                     text_rect = piece_text.get_rect(center=(col * TILE_SIZE + TILE_SIZE // 2,
                                                                 row * TILE_SIZE + PANEL_HEIGHT + TILE_SIZE // 2))
                     self.screen.blit(piece_text, text_rect)
                     
-                # Draw Piece 
+                # Dibujar Pieza
                 if piece in ['WH', 'BH']:
                     if piece in self.assets:
                         self.screen.blit(self.assets[piece], (col * TILE_SIZE, row * TILE_SIZE + PANEL_HEIGHT))
                     else:
-                        # Fallback text
+                        # Texto alternativo
                         text_color = (0, 0, 0) if piece == 'WH' else (50, 50, 50)
                         piece_text = self.font.render(piece, True, text_color)
                         text_rect = piece_text.get_rect(center=(col * TILE_SIZE + TILE_SIZE // 2, 
@@ -173,18 +173,18 @@ class GUI:
 
 
     def draw_game_over(self, winner):
-        # Overlay
+        # Superposición
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         overlay.set_alpha(200)
         overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
 
-        # Game Over Text
+        # Texto de Fin del Juego
         game_over_text = self.font.render("GAME OVER", True, (255, 0, 0))
         text_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 100))
         self.screen.blit(game_over_text, text_rect)
 
-        # Winner Text
+        # Texto del Ganador
         winner_name = "Draw"
         if winner == 'WH':
             winner_name = "White (AI)"
@@ -196,13 +196,13 @@ class GUI:
         winner_rect = winner_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 40))
         self.screen.blit(winner_text, winner_rect)
 
-        # Score Text
+        # Texto de Puntaje
         score_str = f"White: {self.game.white_horse.score} - Black: {self.game.black_horse.score}"
         score_text = self.small_font.render(score_str, True, COLOR_TEXT)
         score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 10))
         self.screen.blit(score_text, score_rect)
 
-        # Restart Button
+        # Botón de Reinicio
         button_rect = pygame.Rect(0, 0, 200, 50)
         button_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80)
         pygame.draw.rect(self.screen, (0, 255, 0), button_rect)
@@ -237,7 +237,7 @@ class GUI:
                 pygame.display.update()
                 continue
 
-            # PLAYING STATE
+            # ESTADO DE JUEGO
             game_over = self.game.game_over()
             winner = None
 
@@ -246,10 +246,10 @@ class GUI:
                 self.status_message = f"Game Over! Winner: {winner}"
                 
             else:
-                # Check if current player has moves
+                # Verificar si el jugador actual tiene movimientos
                 if not self.game.get_valid_moves():
                     self.status_message = f"No moves for {self.game.turn.name}. Skipping turn..."
-                    # Draw to show message before skipping
+                    # Dibujar para mostrar mensaje antes de saltar
                     self.draw_panel()
                     self.draw_board()
                     pygame.display.update()
@@ -259,45 +259,45 @@ class GUI:
                     continue
 
             if self.game.turn == self.game.white_horse and not game_over:
-                # 1. Update Status to Thinking
+                # 1. Actualizar Estado a Pensando
                 self.status_message = "AI Thinking..."
                 self.draw_panel()
                 self.draw_board()
                 pygame.display.update()
                 
-                # 2. Artificial Delay for "Thinking"
+                # 2. Retraso Artificial para "Pensando"
                 pygame.time.wait(500)
                 
-                # 3. Get Decision
+                # 3. Obtener Decisión
                 best_move = self.game.get_ai_decision()
                 
                 if best_move:
-                    # 4. Highlight Target
+                    # 4. Resaltar Objetivo
                     self.ai_target_pos = best_move
                     self.status_message = f"AI moving to {best_move}..."
                     self.draw_panel()
                     self.draw_board()
                     pygame.display.update()
                     
-                    # 5. Delay to show highlight
+                    # 5. Retraso para mostrar resaltado
                     pygame.time.wait(1000)
                     
-                    # 6. Execute Move
+                    # 6. Ejecutar Movimiento
                     self.game.move(best_move)
-                    self.ai_target_pos = None # Clear highlight
+                    self.ai_target_pos = None # Limpiar resaltado
                 else:
-                    # Should be handled by no moves check, but just in case
+                    # Debería ser manejado por la verificación de no movimientos, pero por si acaso
                     self.status_message = "AI has no moves!"
                     self.draw_panel()
                     self.draw_board()
                     pygame.display.update()
                     pygame.time.wait(1000)
             
-            # Update status for player turn
+            # Actualizar estado para turno del jugador
             if self.game and self.game.turn == self.game.black_horse and not game_over:
                  self.status_message = "Your Turn (Black Horse)"
 
-            # Event Handling
+            # Manejo de Eventos
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
@@ -309,18 +309,18 @@ class GUI:
                         button_rect = pygame.Rect(0, 0, 200, 50)
                         button_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80)
                         if button_rect.collidepoint(pos):
-                            self.state = 'START' # Go back to start screen
+                            self.state = 'START' # Volver a la pantalla de inicio
                             self.game = None
                             game_over = False
                             winner = None
                     else:
-                        # Game logic clicks
+                        # Clics de lógica del juego
                         if self.game.turn == self.game.black_horse:
                              row, col = self.get_row_col_from_mouse(pos)
                              if row is not None and col is not None:
                                  self.game.move(end=(row, col))
             
-            # Drawing
+            # Dibujando
             self.draw_panel()
             self.draw_board()
 
