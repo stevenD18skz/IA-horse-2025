@@ -151,7 +151,7 @@ class GUI:
                     s.fill((255, 0, 0)) # Resaltado rojo para intención de IA
                     self.screen.blit(s, (col * TILE_SIZE, row * TILE_SIZE + PANEL_HEIGHT))
 
-                if piece not in [-20, 'HW', 'HB', 0]:
+                if piece not in [-20, 'WH', 'BH', 0]:
                     # Renderizar el entero como texto
                     piece_text = self.small_font.render(str(piece), True, (0, 0, 0))
                     text_rect = piece_text.get_rect(center=(col * TILE_SIZE + TILE_SIZE // 2,

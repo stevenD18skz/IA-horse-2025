@@ -313,22 +313,14 @@ class Game:
             return True
 
         if len(white_moves) == 0:
-            print("White horse has no moves")
             if not self.white_horse_penality:
-                print("White horse penalty")
-                print(self.white_horse.score)
                 self.white_horse_penality = True
                 self.white_horse.score -= 4
-                print(self.white_horse.score)
             
         if len(black_moves) == 0:
-            print("Black horse has no moves")
             if not self.black_horse_penality:
-                print("Black horse penalty")
-                print(self.black_horse.score)
                 self.black_horse_penality = True
                 self.black_horse.score -= 4
-                print(self.black_horse.score)
             
         return False
 
